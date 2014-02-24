@@ -1,0 +1,51 @@
+doctype 5
+html(lang='en')
+    head
+        meta(charset='UTF-8')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title Viewer Application
+        block css
+            link(rel='stylesheet', href='/css/style.css')
+            link(rel='stylesheet', href='/css/bootstrap.min.css')
+            link(rel='stylesheet', href='/css/bootstrap-responsive.min.css')
+            link(rel='stylesheet', href='/css/dashboard.css')
+        block js
+            script(src="http://code.jquery.com/jquery-1.11.0.min.js")
+            script(src="/js/viewer.js")
+            script(src="/js/bootstrap.min.js")
+            script(src="/js/jqBootstrapValidation.js")
+    body
+        .navbar.navbar-inverse.navbar-fixed-top(role="navigation")
+            .container-fluid
+                .navbar-header
+                    button(type="button", class="navbar-toggle", data-toggle="collapse", data-target=".navbar-collapse")
+                        span.sr-only">Toggle navigation
+                        span.icon-bar
+                        span.icon-bar
+                        span.icon-bar
+                    a.navbar-brand(href="/") Viewer Application
+                .navbar-collapse.collapse
+                    ul.nav.navbar-nav.navbar-right
+                        li.dropdown
+                            a.dropdown-toggle(href="#", data-toggle="dropdown") #{user.name} <b class="caret"></b>
+                                ul.dropdown-menu
+                                    li
+                                        a(href="/logout", id="logout") Log out
+                                    li.divider
+                                    li.dropdown-header Nav header
+                                    li
+                                        a(href="#") Separated link
+                                    li
+                                        a(href="#") One more separated link
+                        li
+                            a(href="#") Dashboard
+                        li
+                            a(href="#") Settings
+                        li
+                            a(href="#") Profile
+                        li
+                            a(href="#") Help
+                    form.navbar-form.navbar-right
+                        input.form-control(type="text", placeholder="Search...")
+        block content
+

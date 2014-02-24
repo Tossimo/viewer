@@ -1,0 +1,34 @@
+extends ../layout
+block content
+    .jumbotron
+        .container
+            .signup-wrapper
+                form.form-vertical.form-signup(novalidate="", method="post", action="/auth/new")
+                    .form-group
+                        label.control-label(for="email") Email address
+                        div
+                            input.form-control(type="email", name="email", required="", aria-invalid="false", placeholder="Enter your email here")
+                            span.help-block
+                    .form-group
+                        label.control-label(for="username") Name
+                        div
+                            input.form-control(type="text", name="username", aria-invalid="false", required="", placeholder="Enter your name", data-validation-username-minlength="4")
+                            span.help-block
+                    .form-group
+                        label.control-label(for="password") Password
+                        div
+                            input.form-control(type="password", name="password", required="", aria-invalid="false", placeholder="Password required", data-validation-password-minlength="6")
+                            span.help-block
+                    .form-group.has-warning
+                        label.control-label(for="passwordAgain") Password again
+                        div
+                            input.form-control(type="password", data-validation-matches-match="password", data-validation-matches-message="Must match passsword entered above",
+                                                name="passwordAgain", required="", placeholder="Confirm password")
+                            span.help-block
+                    br
+                    .form-actions
+                        button.btn.btn-lg.btn-primary.btn-block(type="submit") Register
+                            i.glyphicon.glyphicon-ok.glyphicon-white
+
+                script.
+                    $(function () { $("input,select,textarea").not("[type=submit]").jqBootstrapValidation(); } );
