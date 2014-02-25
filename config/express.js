@@ -18,7 +18,7 @@ module.exports = function(app, config) {
           url: config.db
       }),
       secret: 'Alabama',
-      cookie: { maxAge: 60000 }
+      cookie: { maxAge: 9000000 }
     }));
     app.use(app.router);
     app.use(function(req, res) {

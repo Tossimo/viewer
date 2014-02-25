@@ -107,6 +107,7 @@ ul.nav.nav-sidebar li a.glyphicon-plus {
 
 ul.images-holder {
     list-style: none;
+    padding-left: 0;
 }
 
 ul.images-holder li{
@@ -136,4 +137,8 @@ ul.images-holder li a {
     right: 20%;
     top: 5px;
     color: blue;
+}
+
+.nav>li>a:hover, .nav>li>a:focus {
+    color: #428bca;
 }

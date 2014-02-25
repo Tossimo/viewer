@@ -15,7 +15,9 @@ $(function($) {
             success: function(data){
                 $imagesHolder.prepend(data);
             }
-        });
+        }).fail(function() {
+                alert('Unable to upload');
+            });
     });
 
 

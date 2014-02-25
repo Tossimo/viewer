@@ -189,38 +189,37 @@ app.post('/image/new', function(req, res) {
         }
 
         function write() {
-            fs.writeFile(newPath, data, function (err) {
+            im.resize({
+                srcData: data,
+                width:   320
+            }, function(err, stdout, stderr){
                 if (err) {
-                    console.log('Error ' + err.message);
-                    res.redirect('/auth');
+                    throw err;
                 } else {
-                    User.findById(req.session.user_id, function(err, user) {
-                        var newImage = new Images();
+                    fs.writeFile(newPath, stdout, 'binary', function (err) {
+                        if (err) {
+                            console.log('Error ' + err.message);
+                            res.redirect('/auth');
+                        } else {
+                            User.findById(req.session.user_id, function(err, user) {
+                                var newImage = new Images();
 
-                        newImage.url = dbPath;
-                        newImage.name = req.files.image.name;
-                        newImage.uuid = uuid;
-                        user.collections.id(req.body.collectionId).images.push(newImage);
-                        user.save(function(err, userid) {
-                            if (err) {
-                                console.log('Error saving image to db' + err.message);
-                            } else {
-                                res.render('dashboard/images.jade', {image: user.collections.id(req.body.collectionId).images.id(newImage._id)});
-                            }
-                        });
-                    })
+                                newImage.url = dbPath;
+                                newImage.name = req.files.image.name;
+                                newImage.uuid = uuid;
+                                user.collections.id(req.body.collectionId).images.push(newImage);
+                                user.save(function(err, userid) {
+                                    if (err) {
+                                        console.log('Error saving image to db' + err.message);
+                                    } else {
+                                        res.render('dashboard/images.jade', {image: user.collections.id(req.body.collectionId).images.id(newImage._id)});
+                                    }
+                                });
+                            })
+                        }
+                    });
                 }
             });
-
-/*            im.resize({
-                srcData: fs.readFileSync('kittens.jpg', 'binary'),
-                width:   256
-            }, function(err, stdout, stderr){
-                if (err) throw err
-                fs.writeFileSync('kittens-resized.jpg', stdout, 'binary');
-                console.log('resized kittens.jpg to fit within 256x256px')
-            });*/
-
 
         }
     });
