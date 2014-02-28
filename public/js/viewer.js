@@ -1,31 +1,90 @@
 $(function($) {
     var $collectionsHolder = $('ul.collections-holder'),
-        $imagesHolder = $('ul.images-holder');
+        $collectionIdInput = $('input[name="collectionId"]'),
+        imagesArr = [],
+        $container = $('#container').masonry();
+
+
+    var showImages = function(collId, fromZero) {
+        var dataToInsert = [],
+            collection = imagesArr[collId],
+            loadFrom = collection.from;
+
+        if (fromZero) {
+            for (var index=0; index<=12; index++) {
+                dataToInsert.push(collection.data[index]);
+            }
+            imagesArr[collId].from = loadFrom + 12;
+        } else {
+            for (var index=0; index<=loadFrom; index++) {
+                dataToInsert.push(collection.data[index]);
+            }
+        }
+        $container.html(dataToInsert);
+        $container.imagesLoaded( function() {
+            $container
+                .masonry()
+                .masonry('reloadItems', dataToInsert)
+                .masonry();
+        });
+    };
+
+    var appendImages = function(collId) {
+        var dataToAppend = [],
+            collection = imagesArr[collId],
+            loadFrom = collection.from,
+            loadTo = collection.data.length;
+
+        loadTo = loadTo > loadFrom ? loadFrom+9 : loadFrom;
+
+        for (var index=loadFrom; index<=loadTo; index++) {
+            dataToAppend.push(collection.data[index]);
+        }
+        imagesArr[collId].from = loadTo;
+
+        $container
+            .append(dataToAppend)
+            .masonry('reloadItems', dataToAppend)
+            .masonry();
+    };
 
     $('#upload-form').submit(function(evt) {
         evt.preventDefault();
-        var fd = new FormData($(this)[0]);
+        if($('#fileUpload').val()) {
+            var fd = new FormData($(this)[0]),
+                collId = $collectionIdInput.val();
+            console.log(imagesArr[collId].data);
 
-        $.ajax({
-            url: '/image/new',
-            data: fd,
-            processData: false,
-            contentType: false,
-            type: 'POST',
-            success: function(data){
-                $imagesHolder.prepend(data);
-            }
-        }).fail(function() {
-                alert('Unable to upload');
-            });
+            $.ajax({
+                url: '/image/new',
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    data = $(data);
+                    $container.prepend(data);
+                    $container.imagesLoaded( function() {
+                        $container.masonry()
+                                  .masonry('prepended', data)
+                                  .masonry();
+                    });
+                    delete imagesArr[collId];
+                }
+            }).fail(function() {
+                    alert('Unable to upload');
+                });
+        } else {
+            alert('Please select file');
+        }
+
     });
 
 
     $('#logout').on('click', function(e) {
         e.preventDefault();
         if (confirm('Are you sure you want to log out?')) {
-            var element = $(this),
-                form = $('<form></form>');
+            var form = $('<form></form>');
             form
                 .attr({
                     method: 'POST',
@@ -45,15 +104,37 @@ $(function($) {
     });
 
 
-    $collectionsHolder.on('click', 'li', function() {
-        var collId = $(this).children().data('id');
-        $("#upload-form input[name='collectionId']").attr('value', collId);
+    $collectionsHolder.on('click', 'li', function(evt) {
+        var collId = $(this).children().data('id'),
+            isActive = $(this).hasClass('active'),
+            wasLoaded = imagesArr[collId];
 
-        $.get('/images/' + collId, function(data) {
-            $imagesHolder.html(data);
-        });
-        $('li.active').removeClass('active');
-        $(this).addClass('active');
+        if (!isActive) {
+            $collectionIdInput.prop('value', collId).next().prop('disabled', false);
+            if (!wasLoaded) {
+                $.get('/images/' + collId)
+                    .done(function(data) {
+                        if (!wasLoaded) {
+                            imagesArr[collId] = {data: $(data), from: 0};
+                        };
+                        showImages(collId, true);
+                    })
+                    .fail(function() {
+                        alert('Sorry, can\'t load');
+                    });
+            } else {
+                showImages(collId, false);
+            }
+            $('li.active').removeClass('active');
+            $(this).addClass('active');
+
+            return false;
+        }
+    });
+
+
+    $('a.collection-name').click(function(evt) {
+        evt.preventDefault();
     });
 
 
@@ -124,18 +205,19 @@ $(function($) {
         $input.val('');
         if (collName) {
             $.get('/collection/new/' + collName, function(data) {
-                $collectionsHolder.html(data);                                                                          //TODO: think better all list or element
+                $collectionsHolder.html(data);
             });
         };
+
         evt.preventDefault();
     });
 
 
-    $imagesHolder.on('click', 'a.imageDel', function(evt) {
+    $container.on('click', 'a.imageDel', function(evt) {
 
-        var collId = $("input[name='collectionId']").val(),
+        var collId = $collectionIdInput.val(),
             imgId = $(this).data('id'),
-            parentLi = $(this).parent();
+            item = $(this).parents('div.item');
 
         $.ajax({
             url: '/image/del/' + collId,
@@ -145,7 +227,9 @@ $(function($) {
             },
             success: function(data) {
                 if(data == 'deleted') {
-                    parentLi.remove();
+                    $container.masonry('remove', item).masonry();
+                    item.remove();
+                    delete imagesArr[collId];
                 }
             },
             error: function(err) {
@@ -159,5 +243,10 @@ $(function($) {
     $('div.error-message').delay(2000).fadeOut(1000);
 
 
-
+    $(window).scroll(function(evt) {
+        if  ($(window).scrollTop() + 50 >= $(document).height() - $(window).height()) {
+            var collId = $collectionIdInput.val();
+            appendImages(collId);
+        }
+    })
 });

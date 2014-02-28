@@ -1,6 +1,6 @@
 -for val, ind in collections
     li
-        a(href="#", data-id="#{val.id}", contenteditable="false") #{val.name}
+        a.collection-name(href="#", data-id="#{val.id}", contenteditable="false") #{val.name}
         div.collection-controls.parents
             a.glyphicon.glyphicon-edit.collection-control.collectionEdt(href="#")
             a.glyphicon.glyphicon-trash.collection-control.collectionDel(href="#")
