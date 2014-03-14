@@ -34,6 +34,10 @@ models.defineModels(mongoose, function() {
 require('./config/express')(app, config);
 //require('./config/routes')(app);
 
+var emailPattern = /^([a-zA-Z0-9_.-])+@([a-zA-Z0-9_.-])+\.([a-zA-Z]){2,3}/,
+    passwordPattern = /.{6,}/,
+    uNamePattern = /.{4,}/;
+
 function loadUser(req, res, next) {
     if (req.session.user_id) {
         User.findById(req.session.user_id, function(err, user) {
@@ -96,21 +100,25 @@ app.get('/auth/new', function(req, res) {
 });
 
 app.post('/auth/new', function(req, res) {
-    var newUser = new User({ email: req.body.email, password: req.body.password, name: req.body.username });
-    newUser.save(function(err) {
-        if (err) {
-            req.session.messages = 'User with such email already exists';
-            res.redirect('/auth/new');
-        } else {
-            req.session.user_id = newUser.id;
-            fs.mkdir('./images/'+newUser.id, function(err) {
-                if (err) {
-                    console.log('Image dir create error ' + err.message);
-                }
-            });
-            res.redirect('/dashboard');
-        }
-    });
+    if (req.body.email.match(emailPattern) && req.body.password.match(passwordPattern) && req.body.username.match(uNamePattern)) {
+        var newUser = new User({ email: req.body.email, password: req.body.password, name: req.body.username });
+        newUser.save(function(err) {
+            if (err) {
+                req.session.messages = 'User with such email already exists';
+                res.redirect('/auth/new');
+            } else {
+                req.session.user_id = newUser.id;
+                fs.mkdir('./images/'+newUser.id, function(err) {
+                    if (err) {
+                        console.log('Image dir create error ' + err.message);
+                    }
+                });
+                res.redirect('/dashboard');
+            }
+        });
+    } else {
+        res.redirect('/auth/new');
+    }
 });
 
 app.del('/logout', loadUser, function(req, res) {
@@ -249,4 +257,15 @@ app.post('/image/del/:collId', function(req, res) {
         }
     });
 
+});
+
+app.get('/viewer', function(req, res) {
+
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
+    User.findById('530b538d0c5ef5aa02000003', function(err, user) {
+        var images = user.collections.id('530b53980c5ef5aa02000004').images;
+        res.render('home/viewer', {images: images});
+    });
 });

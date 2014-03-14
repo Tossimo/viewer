@@ -11,10 +11,10 @@ $(function($) {
             loadFrom = collection.from;
 
         if (fromZero) {
-            for (var index=0; index<=12; index++) {
+            for (var index=0; index<=14; index++) {
                 dataToInsert.push(collection.data[index]);
             }
-            imagesArr[collId].from = loadFrom + 12;
+            imagesArr[collId].from +=14;
         } else {
             for (var index=0; index<=loadFrom; index++) {
                 dataToInsert.push(collection.data[index]);
@@ -69,7 +69,7 @@ $(function($) {
                                   .masonry('prepended', data)
                                   .masonry();
                     });
-                    delete imagesArr[collId];
+                    imagesArr[collId].reloadNeeded = true;
                 }
             }).fail(function() {
                     alert('Unable to upload');
@@ -107,16 +107,15 @@ $(function($) {
     $collectionsHolder.on('click', 'li', function(evt) {
         var collId = $(this).children().data('id'),
             isActive = $(this).hasClass('active'),
-            wasLoaded = imagesArr[collId];
+            wasLoaded = imagesArr[collId],
+            reloadNeeded = wasLoaded ? imagesArr[collId].reloadNeeded : false;
 
         if (!isActive) {
             $collectionIdInput.prop('value', collId).next().prop('disabled', false);
-            if (!wasLoaded) {
+            if (!wasLoaded || reloadNeeded) {
                 $.get('/images/' + collId)
                     .done(function(data) {
-                        if (!wasLoaded) {
-                            imagesArr[collId] = {data: $(data), from: 0};
-                        };
+                        imagesArr[collId] = {data: $(data), from: 0, reloadNeeded: false};
                         showImages(collId, true);
                     })
                     .fail(function() {
@@ -229,7 +228,7 @@ $(function($) {
                 if(data == 'deleted') {
                     $container.masonry('remove', item).masonry();
                     item.remove();
-                    delete imagesArr[collId];
+                    imagesArr[collId].reloadNeeded = true;
                 }
             },
             error: function(err) {
