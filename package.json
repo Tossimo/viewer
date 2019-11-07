@@ -6,7 +6,7 @@
     "start": "app.js"
   },
   "dependencies": {
-    "express": "~3.3.4",
+    "express": "~4.17.1",
     "jade": "~0.34.0",
     "mongoose": "~5.7.8",
     "Faker": "0.5.x",
